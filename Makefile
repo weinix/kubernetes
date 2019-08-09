@@ -10,15 +10,16 @@ RESET=$(shell tput sgr0)
 help:
 	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-s0: ## Setup nfs server and kubernetes cluster
+s0: ## Setup nfs server and kubernetes cluster (8-10 min)
 	@cd $(PWD)/nfsserver && vagrant up; \
 	cd $(PWD)/vagrant-provisioning && vagrant up
 
 s1: ## Setup ssh-key to kmaster and copy kubeconfig file
-	@sshpass -p vagrant ssh-copy-id vagrant@kmaster; \
-	sshpass -p vagrant ssh-copy-id vagrant@nfsserver; \
+	@sshpass -p vagrant ssh-copy-id vagrant@kmaster > /dev/null 2>&1; \
+	sshpass -p vagrant ssh-copy-id vagrant@nfsserver > /dev/null 2>&1; \
 	ssh vagrant@kmaster "sudo cp -a /home/vagrant/.ssh /root/; sudo chown -R root:root /root/.ssh;"; \
-	scp root@kmaster:/etc/kubernetes/admin.conf ~/.kube/config
+	scp root@kmaster:/etc/kubernetes/admin.conf ~/.kube/config > /dev/null 2>&1; \
+	echo kubectl is ready
 
 s2: ## Check cluster status
 	@echo kubectl cluster-info; \
@@ -73,3 +74,24 @@ clean-prometheus: ## Delete Prometheus
 clean:  ## Destroy nfs server and Kubernetes cluster
 	@cd $(PWD)/nfsserver && vagrant destroy -f; \
 	cd $(PWD)/vagrant-provisioning && vagrant destroy -f
+
+
+#
+## https://itnext.io/kubernetes-monitoring-with-prometheus-in-15-minutes-8e54d1de2e13
+sb-2: ## Install prmotheus operator
+	@echo Install prometheus operator; \
+	 helm install stable/prometheus-operator --name prometheus-operator --namespace monitoring
+
+sb-3: ## Forward operator port to localhost:9090
+	@echo "Forward operator port to localhost 9090"; \
+	kubectl port-forward -n monitoring prometheus-prometheus-operator-prometheus-0 9090 > /dev/null 2>&1 & 
+
+sb-4: ## Forward operator port to localhost:3000
+	@echo "Forward operator port to localhost 3000"; \
+	kubectl port-forward $(shell kubectl get  pods --selector=app=grafana -n  monitoring --output=jsonpath="{.items..metadata.name}") -n monitoring  3000 > /dev/null 2>&1 &
+
+sb-5: ## Kill kubectl forwarding process
+	@echo Kill kubectl forwarding; \
+	kill -9 $(shell ps -ef | grep "kubectl port-forward" | grep -v grep | awk 'BEGIN{ORS=" "} /kubectl/{print $$2}')
+sb-6: ## Test with broswer admin/prom-operator
+	@open http://localhost:3000
