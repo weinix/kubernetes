@@ -1,0 +1,18 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+
+Vagrant.configure(2) do |config1|
+  config1.vm.provision "shell", path: "nfsserver.sh"
+  config1.vm.define "nfsserver" do |nfsserver|
+    nfsserver.vm.box = "generic/ubuntu1810"
+    nfsserver.vm.hostname = "nfsserver.example.com"
+    nfsserver.vm.network "private_network", ip: "172.42.42.99"
+    nfsserver.vm.provider "virtualbox" do |v|
+      v.name = "nfsserver"
+      v.memory = 2048
+      v.cpus = 2
+    end
+  end
+end
