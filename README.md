@@ -1,6 +1,13 @@
 # kubernetes
 Kubernetes playground
 
+## Dependenties
+- vagrant
+- kubectl
+- heml
+- sshpass
+
+
 ## Prometheus and grafana for K8s 
 
 Use make command to follow below steps
