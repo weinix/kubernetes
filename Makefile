@@ -43,7 +43,8 @@ s4: ## Setup tiller
 	kubectl -n kube-system get pods
 
 s5: ## helm list should be empty but no errors
-	@helm list
+	@echo helm list should be empty but no errors; \
+	helm list
 
 s6: ## Install prometheus and export to nodePort:32322 (open another window and watch with: kubectl get all -n prometheus)
 	@helm install stable/prometheus --namespace prometheus --set alertmanager.service.type=NodePort \
