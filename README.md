@@ -1,14 +1,16 @@
 # kubernetes
 Kubernetes playground
 
+Note: works best on mac, on Linux should be fine other then open command is not available 
+
 ## Dependenties
-- vagrant
-- kubectl
-- heml
-- sshpass
+* vagrant
+* kubectl
+* heml
+* sshpass
 
 
-## Prometheus and grafana for K8s 
+## Playbook-1 Prometheus and grafana with persistant storage(helm)
 
 Use make command to follow below steps
 
